@@ -1,0 +1,45 @@
+### Register (crear usuario)
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "nombreCompleto": "joan",
+  "email": "joangarzia@example.com",
+  "password": "Secret123!"
+}
+
+### Login (obtén token)
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "prueba4@example.com",
+  "password": "Secret123!"
+}
+
+### Get all users (protegido) 
+GET http://localhost:3000/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU1NjZkNTBhLTQyM2YtNDY4NC1iOGYzLTc0MmQxNmE4OGFjMiIsImVtYWlsIjoicHJ1ZWJhQGV4YW1wbGUuY29tIiwiaWF0IjoxNzYxNDA1NTY3LCJleHAiOjE3NjE0MDkxNjd9.fgZxnFCuMhW_J7_ouNbyxe5tInVPODownbgK0_FhNs0
+Accept: application/json
+
+### Get user by id (protegido)
+GET http://localhost:3000/users/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkZTVjZWU2LWQwZDAtNGZkMi1iZjBmLTA2ZjMwNWM0NTlhMSIsImVtYWlsIjoicHJ1ZWJhMkBleGFtcGxlLmNvbSIsImlhdCI6MTc2MTQwOTA2MSwiZXhwIjoxNzYxNDEyNjYxfQ.JiTTCvmZShyEw-CtWvpcsKhcGSkjq1FJlRBu2SSgvUE
+Accept: application/json
+
+### Update user (PUT /users/:id)
+PUT http://localhost:3000/users/4454b2ac-b71a-4603-b502-c9ecbd795e68
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ0NTRiMmFjLWI3MWEtNDYwMy1iNTAyLWM5ZWNiZDc5NWU2OCIsImVtYWlsIjoicHJ1ZWJhU1NTQGV4YW1wbGUuY29tIiwiaWF0IjoxNzYxNDEwNjgzLCJleHAiOjE3NjE0MTQyODN9.RLAGbmrBHyixIqvorxguL9odjvyHDl4gh2IjmdOpFXs
+
+{
+  "nombreCompleto": "Nombre Actualizado",
+  "email": "actualizado@example.com",
+  "password": "NuevaPass123!",
+  "role": "admin"
+}
+
+### Delete user (DELETE /users/:id)
+DELETE http://localhost:3000/users/4454b2ac-b71a-4603-b502-c9ecbd795e68
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ0NTRiMmFjLWI3MWEtNDYwMy1iNTAyLWM5ZWNiZDc5NWU2OCIsImVtYWlsIjoicHJ1ZWJhU1NTQGV4YW1wbGUuY29tIiwiaWF0IjoxNzYxNDEwNjgzLCJleHAiOjE3NjE0MTQyODN9.RLAGbmrBHyixIqvorxguL9odjvyHDl4gh2IjmdOpFXs
+Accept: application/json
