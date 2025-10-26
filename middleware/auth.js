@@ -7,6 +7,7 @@ function auth(req, res, next) {
   // 1. Verificar si el encabezado Authorization está presente.
   if (!authHeader) {
  // Si no está presente, devuelve 401 inmediatamente.
+   console.log(authHeader)
     return res.status(401).json({ status: 'fail', data: { message: 'No token provided' }});
     }
 
