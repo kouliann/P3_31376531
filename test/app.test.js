@@ -118,7 +118,7 @@ describe('Autenticación y rutas protegidas', () => {
   });
 
   test('login devuelve token y datos de usuario', async () => {
-  const secret = process.env.JWT_SECRET || 'dev_secret';
+  
     const res = await request(app)
       .post('/auth/login')
       .send({ email: userPayload.email, password: userPayload.password })
@@ -131,7 +131,7 @@ describe('Autenticación y rutas protegidas', () => {
     token = res.body.data.token;
 
     // verificar token válido y payload contiene email
-    const payload = jwt.verify(token, secret);
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
     expect(payload).toHaveProperty('email', userPayload.email);
 
     // si el endpoint devuelve user en data, chequear nombre
