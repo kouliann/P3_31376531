@@ -52,8 +52,6 @@ class AlbumsController {
         deluxeVersion: req.query.deluxeVersion
       };
 
-      console.log('[publicList] filters:', filters);
-
       const result = await this.service.search(filters);
       return res.json({
         status: 'success',

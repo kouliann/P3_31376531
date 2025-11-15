@@ -192,9 +192,6 @@ async getAllAlbums() {
 
     const opts = builder.build();
 
-     // log del objeto que se pasará a Prisma
-+      console.log('[AlbumsService.search] prisma opts:', JSON.stringify(opts, null, 2));
-
     // total count and items via repository
     const [total, items] = await Promise.all([
       repository.count(opts.where || {}),

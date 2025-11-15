@@ -53,6 +53,13 @@ Accept: application/json
 GET http://localhost:3000/albums/2-the-raise-and-the-fall-of-a-midwest-princess
 Accept: application/json
 
+
+### get all albums (public)
+GET http://localhost:3000/albums
+Accept: application/json
+
+
+
 ### Create product (POST /albums)
 POST http://localhost:3000/albums
 Content-Type: application/json

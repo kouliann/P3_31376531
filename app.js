@@ -15,10 +15,15 @@ var albumsRouter = require('./src/routes/AlbumsRoutes');
 var categoryRouter = require('./src/routes/categoryRoutes');
 var tagsRouter = require('./src/routes/tagsRoutes');
 
+const cors = require('cors');
+
 var app = express();
 
+app.use(cors()); 
+app.options('*', cors());
+
 // Swagger / OpenAPI definition
-const swaggerSpec = swaggerJSDoc({
+ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
@@ -114,7 +119,22 @@ const swaggerSpec = swaggerJSDoc({
     }
   },
   apis: [path.join(__dirname, 'app.js')]
-});
+};
+
+let swaggerSpec;
+try {
+  swaggerSpec = swaggerJSDoc(swaggerOptions);
+  // servir el JSON del spec en una ruta fija
+  app.get('/api-docs/swagger.json', (req, res) => res.json(swaggerSpec));
+
+  // montar UI y forzar que cargue el JSON vía HTTP (evita problemas de scheme/CORS)
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, { swaggerUrl: '/api-docs/swagger.json' }));
+  console.log('Swagger UI montado en /api-docs (spec en /api-docs/swagger.json)');
+} catch (err) {
+  console.error('[swagger] error generando spec:', err && err.message);
+  console.warn('Swagger UI no estará disponible hasta corregir la spec');
+}
+
 
 // Expose swagger UI at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
