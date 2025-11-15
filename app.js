@@ -10,6 +10,10 @@ var swaggerUi = require('swagger-ui-express');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+var usuariosRouter = require('./src/routes/userRouters');
+var albumsRouter = require('./src/routes/AlbumsRoutes');
+var categoryRouter = require('./src/routes/categoryRoutes');
+var tagsRouter = require('./src/routes/tagsRoutes');
 
 var app = express();
 
@@ -128,6 +132,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
+// RUTAS DE USUARIOS Y ALBUMS
+
+
+app.use('/users', usuariosRouter);
+app.use('/albums', albumsRouter);
+app.use('/categories', categoryRouter);
+app.use('/tags', tagsRouter);
+
+
 /////////////////// INICIO ENDPOINTS ///////////////////////
 
 // --- DOCUMENTACIÓN DE AUTENTICACIÓN ---
@@ -196,23 +209,526 @@ app.use('/users', usersRouter);
  *   get:
  *     tags:
  *       - Usuarios
- *     summary: Obtiene la lista de todos los usuarios
- *     description: Esta ruta está protegida y requiere un token JWT válido.
+ *     summary: Lista todos los usuarios
+ *     description: Devuelve la lista de usuarios (protegido). Respuesta JSend.
  *     security:
  *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de usuarios obtenida exitosamente.
+ *         description: Lista de usuarios
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/UsersListResponse'
  *       401:
- *         description: No autorizado (Token faltante o inválido/expirado)
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   post:
+ *     tags:
+ *       - Usuarios
+ *     summary: Crea un nuevo usuario
+ *     description: Crea un usuario y devuelve sus datos (sin passwordHash).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserRegistration'
+ *     responses:
+ *       201:
+ *         description: Usuario creado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RegistrationSuccess'
+ *       409:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ */
+
+
+/**
+ * @openapi
+ * /users/{id}:
+ *   get:
+ *     tags:
+ *       - Usuarios
+ *     summary: Obtener usuario por id
+ *     description: Devuelve los datos públicos de un usuario por su id.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Id del usuario
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RegistrationSuccess'
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: No encontrado
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   put:
+ *     tags:
+ *       - Usuarios
+ *     summary: Actualiza un usuario
+ *     description: Actualiza datos de usuario (protegido).
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombreCompleto:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RegistrationSuccess'
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   delete:
+ *     tags:
+ *       - Usuarios
+ *     summary: Elimina un usuario
+ *     description: Elimina un usuario por id (protegido).
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuario eliminado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ */
+
+
+// --- DOCUMENTACION DEL RECURSO /ALBUMS, /CATEGORIES Y /TAGS
+
+// ALBUMS
+/**
+ * @openapi
+ * /albums:
+ *   get:
+ *     tags:
+ *       - Public - Products
+ *     summary: Listado público avanzado de albums (paginación y filtros)
+ *     description: >
+ *       Endpoint público para listar y filtrar albums. Devuelve resultado en formato JSend.
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número de página
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Elementos por página (máx. 100)
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: ID numérico o nombre de la categoría
+ *       - in: query
+ *         name: tags
+ *         schema:
+ *           type: string
+ *         description: CSV de IDs o nombres de tags (ej. "1,2" o "rock,indie")
+ *       - in: query
+ *         name: price_min
+ *         schema:
+ *           type: number
+ *         description: Precio mínimo (inclusive)
+ *       - in: query
+ *         name: price_max
+ *         schema:
+ *           type: number
+ *         description: Precio máximo (inclusive)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Término de búsqueda aplicado a name y description
+ *       - in: query
+ *         name: author
+ *         schema:
+ *           type: string
+ *         description: Filtrar por author
+ *       - in: query
+ *         name: discography
+ *         schema:
+ *           type: string
+ *         description: Filtrar por discography / sello
+ *       - in: query
+ *         name: deluxeVersion
+ *         schema:
+ *           type: boolean
+ *         description: Filtrar por versión deluxe (true/false)
+ *       - in: query
+ *         name: orderBy
+ *         schema:
+ *           type: string
+ *         description: Orden (ej. "price:asc" o "createdAt:desc")
+ *     responses:
+ *       200:
+ *         description: Listado paginado (JSend)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     items:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                     meta:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                         total:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
+ *       400:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   post:
+ *     tags:
+ *       - Admin - Products
+ *     summary: Crear un album (protegido)
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               stock:
+ *                 type: integer
+ *               author:
+ *                 type: string
+ *               discography:
+ *                 type: string
+ *               deluxeVersion:
+ *                 type: boolean
+ *               category:
+ *                 type: string
+ *                 description: Nombre de categoría (o usar categoryId)
+ *               categoryId:
+ *                 type: integer
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               tagIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *     responses:
+ *       201:
+ *         description: Album creado
+ *       400:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @openapi
+ * /albums/{idSlug}:
+ *   get:
+ *     tags:
+ *       - Public - Products
+ *     summary: Vista pública de album por id-slug (Self-Healing)
+ *     description: >
+ *       Ruta pública que acepta formato "{id}-{slug}" o solo "{id}". Busca por id y si el slug
+ *       de la URL no coincide redirige 301 a la URL canónica.
+ *     parameters:
+ *       - in: path
+ *         name: idSlug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Formato "123-mi-album" o "123"
+ *     responses:
+ *       200:
+ *         description: Album encontrado (JSend success)
+ *       301:
+ *         description: Redirección permanente a la URL canónica (Location header)
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @openapi
+ * /albums/{id}:
+ *   put:
+ *     tags:
+ *       - Admin - Products
+ *     summary: Actualizar album (protegido)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Album actualizado
+ *       400:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   delete:
+ *     tags:
+ *       - Admin - Products
+ *     summary: Eliminar album (protegido)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Album eliminado
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ */
+
+// CATEGORIES
+
+/**
+ * @openapi
+ * /categories:
+ *   post:
+ *     tags:
+ *       - Admin - Categories
+ *     summary: Crear categoría (protegido)
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Categoría creada
+ *       400:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   put:
+ *     tags:
+ *       - Admin - Categories
+ *     summary: Actualizar categoría (protegido)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Categoría actualizada
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   delete:
+ *     tags:
+ *       - Admin - Categories
+ *     summary: Eliminar categoría (protegido)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Categoría eliminada
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ */
+
+// TAGS
+/**
+ * @openapi
+ * /tags:
+ *   post:
+ *     tags:
+ *       - Admin - Tags
+ *     summary: Crear tag (protegido)
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Tag creado
+ *       400:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   put:
+ *     tags:
+ *       - Admin - Tags
+ *     summary: Actualizar tag (protegido)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Tag actualizado
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   delete:
+ *     tags:
+ *       - Admin - Tags
+ *     summary: Eliminar tag (protegido)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Tag eliminado
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
  */
 
 // get /about - respuesta en json con nombre completo, cédula y sección

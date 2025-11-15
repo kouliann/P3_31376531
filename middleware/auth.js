@@ -19,7 +19,7 @@ function auth(req, res, next) {
     return res.status(401).json({ status: 'fail', data: { message: 'Invalid token format. Expected: Bearer <token>' }});
   }
   
-  const secret = process.env.JWT_SECRET || 'dev_secret';
+  const secret = process.env.JWT_SECRET;
   try {
     const payload = jwt.verify(token, secret);
     req.user = payload;

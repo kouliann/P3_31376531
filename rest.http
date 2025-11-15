@@ -3,8 +3,8 @@ POST http://localhost:3000/auth/register
 Content-Type: application/json
 
 {
-  "nombreCompleto": "joan",
-  "email": "joangarzia@example.com",
+  "nombreCompleto": "Elian",
+  "email": "Elian@example.com",
   "password": "Secret123!"
 }
 
@@ -13,7 +13,7 @@ POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-  "email": "prueba4@example.com",
+  "email": "Elian@example.com",
   "password": "Secret123!"
 }
 
@@ -43,3 +43,66 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ0NTRiMmFjL
 DELETE http://localhost:3000/users/4454b2ac-b71a-4603-b502-c9ecbd795e68
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ0NTRiMmFjLWI3MWEtNDYwMy1iNTAyLWM5ZWNiZDc5NWU2OCIsImVtYWlsIjoicHJ1ZWJhU1NTQGV4YW1wbGUuY29tIiwiaWF0IjoxNzYxNDEwNjgzLCJleHAiOjE3NjE0MTQyODN9.RLAGbmrBHyixIqvorxguL9odjvyHDl4gh2IjmdOpFXs
 Accept: application/json
+
+###
+### Get all albums (public)
+GET http://localhost:3000/albums
+Accept: application/json
+
+### Get album by idSlug (public)
+GET http://localhost:3000/albums/2-the-raise-and-the-fall-of-a-midwest-princess
+Accept: application/json
+
+### Create product (POST /albums)
+POST http://localhost:3000/albums
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YmVlN2UyLWFiN2ItNGFmYy1hMDE0LTg4MjA5ZDVhNzRkZCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjMyNDcwNDcsImV4cCI6MTc2MzI1MDY0N30.PE_ij47lNz3HRDMcr7CZrkVr52f-6UooudeSuwq6HfI
+
+{
+  "name": "Short n' Sweet",
+  "description": " es el sexto álbum de estudio de la cantautora estadounidense Sabrina Carpenter, publicado el 23 de agosto de 2024 por el sello Island Records",
+  "price": 10.99,
+  "categoryId":"1",
+  "stock": 100,
+  "author": "Sabrina Carpenter",
+  "discography": "Island Records",
+  "deluxeVersion": true,
+  "tags":[3, 4, 5]
+  
+}
+
+### Create category (POST /category)
+POST http://localhost:3000/categories
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YmVlN2UyLWFiN2ItNGFmYy1hMDE0LTg4MjA5ZDVhNzRkZCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjMyNDcwNDcsImV4cCI6MTc2MzI1MDY0N30.PE_ij47lNz3HRDMcr7CZrkVr52f-6UooudeSuwq6HfI
+
+{
+  "name": "Pop Rock",
+  "description": "género musical que combina elementos melódicos y pegadizos del pop con la instrumentación y la energía del rock"
+}
+
+### create tags (POST /tags)
+POST http://localhost:3000/tags
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YmVlN2UyLWFiN2ItNGFmYy1hMDE0LTg4MjA5ZDVhNzRkZCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjMyNDcwNDcsImV4cCI6MTc2MzI1MDY0N30.PE_ij47lNz3HRDMcr7CZrkVr52f-6UooudeSuwq6HfI
+
+{
+  "name": "Sabrina"
+}
+
+### Update album (PUT /albums/:id)
+PUT http://localhost:3000/albums/2
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YmVlN2UyLWFiN2ItNGFmYy1hMDE0LTg4MjA5ZDVhNzRkZCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjMyNDcwNDcsImV4cCI6MTc2MzI1MDY0N30.PE_ij47lNz3HRDMcr7CZrkVr52f-6UooudeSuwq6HfI
+
+{
+  "name": "Short n' Sweet",
+  "description": "es el sexto álbum de estudio de la cantautora estadounidense Sabrina Carpenter, publicado el 23 de agosto de 2024 por el sello Island Records",
+  "price": 14.99,
+  "categoryId":"2",
+  "stock": 50,
+  "author": "Sabrina Carpenter",
+  "discography": "Island Records",
+  "deluxeVersion": true,
+  "tags":[3, 4, 5]
+}

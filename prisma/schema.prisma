@@ -8,11 +8,43 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
+  id            String  @id @default(uuid())
   nombreCompleto String
   email         String   @unique
   passwordHash  String
   role          String?  @default("user")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  albums    Albums[]
+}
+
+model Tag {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  albums    Albums[]
+}
+
+model Albums {
+  id            Int       @id @default(autoincrement())
+  name          String
+  slug          String    @unique
+  description   String?
+  price         Float
+  stock         Int       @default(0)
+  author        String   
+  discography   String
+  deluxeVersion Boolean
+  category      Category  @relation(fields: [categoryId], references: [id])
+  categoryId    Int
+  tags          Tag[]     // relación many-to-many implícita
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([name])
 }
