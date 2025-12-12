@@ -115,6 +115,47 @@ app.options('*', cors());
             }
           }
         },
+        OrderItem: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', example: 1 },
+            albumId: { type: 'integer', example: 7 },
+            quantity: { type: 'integer', example: 2 },
+            unitPrice: { type: 'number', example: 19.99 }
+          }
+        },
+        Order: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', example: 123 },
+            userId: { type: 'string', example: 'uuid-or-id' },
+            totalAmount: { type: 'number', example: 59.97 },
+            status: { type: 'string', example: 'COMPLETED' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+            items: { type: 'array', items: { $ref: '#/components/schemas/OrderItem' } }
+          }
+        },
+        OrderRequest: {
+          type: 'object',
+          required: ['items','paymentMethod','paymentDetails'],
+          properties: {
+            items: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['albumId','quantity'],
+                properties: {
+                  albumId: { type: 'integer', example: 7 },
+                  quantity: { type: 'integer', example: 2 }
+                }
+              }
+            },
+            paymentMethod: { type: 'string', example: 'creditcard' },
+            paymentDetails: { type: 'object', example: { cardNumber: '4111111111111111', cvv: '123', expiryMonth: '12', expiryYear: '2030' } },
+            currency: { type: 'string', example: 'USD' }
+          }
+        },
       }
     }
   },
@@ -752,6 +793,107 @@ app.use('/tags', tagsRouter);
  */
 
 // get /about - respuesta en json con nombre completo, cédula y sección
+
+/**
+ * @openapi
+ * /orders:
+ *   post:
+ *     tags:
+ *       - Orders
+ *     summary: Crea una orden y procesa el pago (OPERACIÓN TRANSACCIONAL)
+ *     description: >
+ *       Operación transaccional: se crea la orden en estado PENDING, se registran los items y se decrementa
+ *       el stock. Si el pago falla se realiza un rollback completo (stock restaurado y orden eliminada).
+ *       Requiere `paymentMethod` y `paymentDetails` en el body.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/OrderRequest'
+ *     responses:
+ *       201:
+ *         description: Orden creada y pagada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Order'
+ *       400:
+ *         description: Error de validación o pago rechazado
+ *         content:
+ *           application/json:
+ *             $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Lista las órdenes del usuario autenticado
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Página de resultados
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Tamaño de página
+ *     responses:
+ *       200:
+ *         description: Listado paginado de órdenes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     items:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Order'
+ *                     meta:
+ *                       type: object
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *
+ */
+
+/**
+ * @openapi
+ * /orders/{id}:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Obtiene una orden por id (usuario debe ser propietario)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Orden encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Order'
+ *       401:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         $ref: '#/components/schemas/ErrorResponse'
+ * */
 
 /**
  * @openapi
