@@ -1,5 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const getPrisma = require('../db/prismaClient');
+const prisma = getPrisma();
 
 class AlbumsRepository {
   async findById(id, opts = {}) {

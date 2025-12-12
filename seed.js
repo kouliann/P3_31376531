@@ -1,8 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
+const getPrisma = require('./src/db/prismaClient');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
-const prisma = new PrismaClient();
+const prisma = getPrisma();
 
 async function main() {
   const hash = await bcrypt.hash('Secret123!', 10);

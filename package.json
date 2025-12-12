@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
@@ -30,6 +30,9 @@
   "devDependencies": {
     "jest": "^30.2.0",
     "supertest": "^7.1.4"
+  },
+  "jest": {
+    "setupFiles": ["<rootDir>/test/useTestDb.js"]
   },
   "keywords": [],
   "author": "",

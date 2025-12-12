@@ -63,44 +63,44 @@ Accept: application/json
 ### Create product (POST /albums)
 POST http://localhost:3000/albums
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YmVlN2UyLWFiN2ItNGFmYy1hMDE0LTg4MjA5ZDVhNzRkZCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjMyNDcwNDcsImV4cCI6MTc2MzI1MDY0N30.PE_ij47lNz3HRDMcr7CZrkVr52f-6UooudeSuwq6HfI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZWI5OGViLWZlYTgtNDhjNS04ZTgyLTA5NjRmNTcyMDZmOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1MTYxNTEsImV4cCI6MTc2NTUxOTc1MX0.dBXwlcwL2e0YYyITd4Pmmb9uu6j31oaepJ1DRUAtbTo
 
 {
-  "name": "Short n' Sweet",
-  "description": " es el sexto álbum de estudio de la cantautora estadounidense Sabrina Carpenter, publicado el 23 de agosto de 2024 por el sello Island Records",
+ "name": "Short n' Sweet",
+  "description": "Siendo el sexto album de estudio de Sabrina, se posiciona como la catapulta que eleva su carrera, este album refleja su evolución artística y personal, consolidándola como una de las voces más influyentes de su generación, este album explora como sabrina ve sus relaciones romanticas pasadas y como estas la han cambiado.",
   "price": 10.99,
-  "categoryId":"1",
+  "categoryId":"35",
   "stock": 100,
   "author": "Sabrina Carpenter",
   "discography": "Island Records",
   "deluxeVersion": true,
-  "tags":[3, 4, 5]
+  "tags":[45]
   
 }
 
 ### Create category (POST /category)
 POST http://localhost:3000/categories
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YmVlN2UyLWFiN2ItNGFmYy1hMDE0LTg4MjA5ZDVhNzRkZCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjMyNDcwNDcsImV4cCI6MTc2MzI1MDY0N30.PE_ij47lNz3HRDMcr7CZrkVr52f-6UooudeSuwq6HfI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZWI5OGViLWZlYTgtNDhjNS04ZTgyLTA5NjRmNTcyMDZmOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1MTYxNTEsImV4cCI6MTc2NTUxOTc1MX0.dBXwlcwL2e0YYyITd4Pmmb9uu6j31oaepJ1DRUAtbTo
 
 {
-  "name": "Pop Rock",
-  "description": "género musical que combina elementos melódicos y pegadizos del pop con la instrumentación y la energía del rock"
+  "name": "Pop ",
+  "description": "Música popular contemporánea"
 }
 
 ### create tags (POST /tags)
 POST http://localhost:3000/tags
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YmVlN2UyLWFiN2ItNGFmYy1hMDE0LTg4MjA5ZDVhNzRkZCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjMyNDcwNDcsImV4cCI6MTc2MzI1MDY0N30.PE_ij47lNz3HRDMcr7CZrkVr52f-6UooudeSuwq6HfI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZWI5OGViLWZlYTgtNDhjNS04ZTgyLTA5NjRmNTcyMDZmOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1MTYxNTEsImV4cCI6MTc2NTUxOTc1MX0.dBXwlcwL2e0YYyITd4Pmmb9uu6j31oaepJ1DRUAtbTo
 
 {
-  "name": "Sabrina"
+  "name": "pop"
 }
 
 ### Update album (PUT /albums/:id)
 PUT http://localhost:3000/albums/2
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YmVlN2UyLWFiN2ItNGFmYy1hMDE0LTg4MjA5ZDVhNzRkZCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjMyNDcwNDcsImV4cCI6MTc2MzI1MDY0N30.PE_ij47lNz3HRDMcr7CZrkVr52f-6UooudeSuwq6HfI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMxZWVkYjg1LTlhZjAtNGU3Ni05NDE1LTZjNzUzOGFlOTMwOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjUzOTkzNDYsImV4cCI6MTc2NTQwMjk0Nn0.vqO9lOaEHeM01IDUEhzyCPLXnCiQacOJ-LhyDHRKx1I
 
 {
   "name": "Short n' Sweet",
@@ -112,4 +112,31 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YmVlN2UyL
   "discography": "Island Records",
   "deluxeVersion": true,
   "tags":[3, 4, 5]
+}
+
+### update category (PUT /categories/:id)
+DELETE http://localhost:3000/categories/3
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMxZWVkYjg1LTlhZjAtNGU3Ni05NDE1LTZjNzUzOGFlOTMwOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjUzOTkzNDYsImV4cCI6MTc2NTQwMjk0Nn0.vqO9lOaEHeM01IDUEhzyCPLXnCiQacOJ-LhyDHRKx1I
+
+### Create order (POST /orders)
+POST http://localhost:3000/orders
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZWI5OGViLWZlYTgtNDhjNS04ZTgyLTA5NjRmNTcyMDZmOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1MTYxNTEsImV4cCI6MTc2NTUxOTc1MX0.dBXwlcwL2e0YYyITd4Pmmb9uu6j31oaepJ1DRUAtbTo
+
+{
+  "items": [
+    { "albumId": 26, "quantity": 2 }
+  ],
+  "paymentMethod": "CreditCard",
+  "paymentDetails": {
+    "card-number": "4111111111111111",
+    "cvv": "123",
+    "expiration-month": 12,
+    "expiration-year": 2030,
+    "full-name": "Elian Tester",
+    "currency": "USD",
+    "description": "Compra de prueba",
+    "reference": "order-test-001"
+  }
 }

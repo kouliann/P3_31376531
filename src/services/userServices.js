@@ -1,7 +1,7 @@
-const { PrismaClient, Prisma } = require('@prisma/client');
+const { Prisma } = require('@prisma/client');
 const bcrypt = require('bcrypt');
-
-const prisma = new PrismaClient();
+const getPrisma = require('../db/prismaClient');
+const prisma = getPrisma();
 
 function stripPassword(user) {
   if (!user) return null;

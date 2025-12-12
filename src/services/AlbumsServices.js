@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+const getPrisma = require('../db/prismaClient');
 const slugify = require('slugify');
 const auth = require('../../middleware/auth');
 
@@ -6,7 +6,7 @@ const AlbumsRepository = require('../repositories/AlbumsRepository');
 const AlbumsQueryBuilder = require('./AlbumsQueryBuilder');
 const repository = new AlbumsRepository();
 
-const prisma = new PrismaClient();
+const prisma = getPrisma();
 
 async function makeUniqueSlug(base) {
   let slug = slugify(base, { lower: true, strict: true });

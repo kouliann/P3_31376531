@@ -14,6 +14,7 @@ var usuariosRouter = require('./src/routes/userRouters');
 var albumsRouter = require('./src/routes/AlbumsRoutes');
 var categoryRouter = require('./src/routes/categoryRoutes');
 var tagsRouter = require('./src/routes/tagsRoutes');
+const ordersRouter = require('./src/routes/ordersRoutes');
 
 const cors = require('cors');
 
@@ -200,6 +201,7 @@ app.use('/users', usuariosRouter);
 app.use('/albums', albumsRouter);
 app.use('/categories', categoryRouter);
 app.use('/tags', tagsRouter);
+app.use('/orders', ordersRouter);
 
 
 /////////////////// INICIO ENDPOINTS ///////////////////////
