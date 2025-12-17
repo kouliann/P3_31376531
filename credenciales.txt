@@ -1,0 +1,14 @@
+registrar
+
+{
+  "nombreCompleto": "Elian",
+  "email": "Elian@example.com",
+  "password": "Secret123!"
+}
+
+login
+
+{
+  "email": "Elian@example.com",
+  "password": "Secret123!"
+}

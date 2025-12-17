@@ -63,38 +63,38 @@ Accept: application/json
 ### Create product (POST /albums)
 POST http://localhost:3000/albums
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZWI5OGViLWZlYTgtNDhjNS04ZTgyLTA5NjRmNTcyMDZmOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1MTYxNTEsImV4cCI6MTc2NTUxOTc1MX0.dBXwlcwL2e0YYyITd4Pmmb9uu6j31oaepJ1DRUAtbTo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc0NmQ5OWJhLTQ2ZTctNGQ4My1hZjFjLTc1NTkxYTlhZGY1YSIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1NjcxODksImV4cCI6MTc2NTU3MDc4OX0.isZqcYi8YoxnREThoufdV_tx-yKYNs2U2o6rQvvnXmQ
 
 {
  "name": "Short n' Sweet",
   "description": "Siendo el sexto album de estudio de Sabrina, se posiciona como la catapulta que eleva su carrera, este album refleja su evolución artística y personal, consolidándola como una de las voces más influyentes de su generación, este album explora como sabrina ve sus relaciones romanticas pasadas y como estas la han cambiado.",
   "price": 10.99,
-  "categoryId":"35",
+  "categoryId":"1",
   "stock": 100,
   "author": "Sabrina Carpenter",
   "discography": "Island Records",
   "deluxeVersion": true,
-  "tags":[45]
+  "tags":[1, 2, 4, 5]
   
 }
 
 ### Create category (POST /category)
 POST http://localhost:3000/categories
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZWI5OGViLWZlYTgtNDhjNS04ZTgyLTA5NjRmNTcyMDZmOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1MTYxNTEsImV4cCI6MTc2NTUxOTc1MX0.dBXwlcwL2e0YYyITd4Pmmb9uu6j31oaepJ1DRUAtbTo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc0NmQ5OWJhLTQ2ZTctNGQ4My1hZjFjLTc1NTkxYTlhZGY1YSIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1NjcxODksImV4cCI6MTc2NTU3MDc4OX0.isZqcYi8YoxnREThoufdV_tx-yKYNs2U2o6rQvvnXmQ
 
 {
   "name": "Pop ",
-  "description": "Música popular contemporánea"
+  "description": "Música popular con ritmos pegajosos y letras accesibles."
 }
 
 ### create tags (POST /tags)
 POST http://localhost:3000/tags
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZWI5OGViLWZlYTgtNDhjNS04ZTgyLTA5NjRmNTcyMDZmOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1MTYxNTEsImV4cCI6MTc2NTUxOTc1MX0.dBXwlcwL2e0YYyITd4Pmmb9uu6j31oaepJ1DRUAtbTo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc0NmQ5OWJhLTQ2ZTctNGQ4My1hZjFjLTc1NTkxYTlhZGY1YSIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1NjcxODksImV4cCI6MTc2NTU3MDc4OX0.isZqcYi8YoxnREThoufdV_tx-yKYNs2U2o6rQvvnXmQ
 
 {
-  "name": "pop"
+  "name": "narrativa personal"
 }
 
 ### Update album (PUT /albums/:id)
@@ -106,7 +106,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMxZWVkYjg1L
   "name": "Short n' Sweet",
   "description": "es el sexto álbum de estudio de la cantautora estadounidense Sabrina Carpenter, publicado el 23 de agosto de 2024 por el sello Island Records",
   "price": 14.99,
-  "categoryId":"2",
+  "categoryId":"1",
   "stock": 50,
   "author": "Sabrina Carpenter",
   "discography": "Island Records",
@@ -122,21 +122,27 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMxZWVkYjg1L
 ### Create order (POST /orders)
 POST http://localhost:3000/orders
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZWI5OGViLWZlYTgtNDhjNS04ZTgyLTA5NjRmNTcyMDZmOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1MTYxNTEsImV4cCI6MTc2NTUxOTc1MX0.dBXwlcwL2e0YYyITd4Pmmb9uu6j31oaepJ1DRUAtbTo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMTAyOTQsImV4cCI6MTc2NjAxMzg5NH0.dIdNho3y4yB75Dp2pDyaON1l0anwsEI78l7oynoqonQ
 
 {
   "items": [
-    { "albumId": 26, "quantity": 2 }
+    { "id": 1, "quantity": 2 }
   ],
   "paymentMethod": "CreditCard",
   "paymentDetails": {
-    "card-number": "4111111111111111",
+    "cardNumber": "4111111111111111", 
     "cvv": "123",
-    "expiration-month": 12,
-    "expiration-year": 2030,
-    "full-name": "Elian Tester",
-    "currency": "USD",
-    "description": "Compra de prueba",
-    "reference": "order-test-001"
+    "expMonth": "12",
+    "expYear": "2030",
+    "cardHolder": "APPROVED",
+    "currency": "USD"
   }
 }
+
+### get all orders (GET /orders)
+GET http://localhost:3000/orders
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMTAyOTQsImV4cCI6MTc2NjAxMzg5NH0.dIdNho3y4yB75Dp2pDyaON1l0anwsEI78l7oynoqonQ
+
+### get order by id (GET /orders/:id)
+GET http://localhost:3000/orders/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMTAyOTQsImV4cCI6MTc2NjAxMzg5NH0.dIdNho3y4yB75Dp2pDyaON1l0anwsEI78l7oynoqonQ

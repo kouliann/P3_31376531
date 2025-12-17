@@ -5,7 +5,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const app = require('../app');
 
-const CreditCardPaymentStrategy = require('../src/strategies/payment/CreditCardPaymentStrategy');
+const CreditCardPaymentStrategy = require('../src/strategies/payment/PaymentStrategy');
 
 describe('Orders transactional tests', () => {
   let token;
@@ -134,6 +134,31 @@ describe('Orders transactional tests', () => {
     const afterCount = await prisma.order.count({ where: { userId: String(userId) } });
     expect(afterCount).toBe(beforeCount);
   });
+
+  test('Fail payment timeout: returns 504 and rollback', async () => {
+    // mock payment timeout (simulate axios timeout)
+    jest.spyOn(CreditCardPaymentStrategy.prototype, 'processPayment').mockResolvedValue({ success: false, message: 'timeout of 15000ms exceeded', isTimeout: true });
+
+    const init1 = (await prisma.albums.findUnique({ where: { id: album1.id } })).stock;
+    const beforeCount = await prisma.order.count({ where: { userId: String(userId) } });
+
+    const payload = { items: [ { albumId: album1.id, quantity: 1 } ], paymentMethod: 'creditcard', paymentDetails: {} };
+    const res = await request(app).post('/orders').set('Authorization', `Bearer ${token}`).send(payload);
+
+    expect(res.statusCode).toBe(504);
+    expect(res.body.status).toBe('fail');
+    expect(res.body.data).toHaveProperty('reason');
+    expect(/timeout/i.test(res.body.data.reason) || /timeout/i.test(res.body.data.payment && res.body.data.payment.message)).toBeTruthy();
+
+    // verify rollback: stock unchanged
+    const after1 = (await prisma.albums.findUnique({ where: { id: album1.id } })).stock;
+    expect(after1).toBe(init1);
+
+    // ensure no new order was created
+    const afterCount = await prisma.order.count({ where: { userId: String(userId) } });
+    expect(afterCount).toBe(beforeCount);
+  });
+  
 
   test('Access control: POST /orders requires auth', async () => {
     const payload = { items: [ { albumId: album1.id, quantity: 1 } ], paymentMethod: 'creditcard', paymentDetails: {} };

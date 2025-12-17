@@ -1,173 +1,122 @@
+
 const getPrisma = require('../db/prismaClient');
 const prisma = getPrisma();
-const CreditCardPaymentStrategy = require('../strategies/payment/CreditCardPaymentStrategy');
+const PaymentProcessor = require('../strategies/payment/PaymentStrategy');
 
 class OrderService {
-  constructor({ paymentStrategyFactory = null, paymentOptions = {} } = {}) {
-    this.paymentStrategyFactory = paymentStrategyFactory;
-    this.paymentOptions = paymentOptions;
-  }
-
-  _getStrategy(paymentMethod) {
-    if (typeof this.paymentStrategyFactory === 'function') {
-      const inst = this.paymentStrategyFactory(paymentMethod, this.paymentOptions);
-      if (inst) return inst;
-    }
-    // mapping simple
-    const m = (paymentMethod || '').toString().toLowerCase();
-    if (m === 'creditcard' || m === 'credit-card' || m === 'card') {
-      return new CreditCardPaymentStrategy(this.paymentOptions);
-    }
-    // fallback to credit card strategy as default
-    return new CreditCardPaymentStrategy(this.paymentOptions);
-  }
-
-  /**
-   * Crea orden: reserva stock y crea order PENDING, luego procesa pago; confirma/compensa según resultado.
-   */
-  async createAndPay({ userId, items = [], paymentMethod, paymentDetails = {}, currency = 'USD' }) {
-    if (!userId) throw new Error('userId requerido');
-    if (!Array.isArray(items) || items.length === 0) throw new Error('items son requeridos');
-
-    // 1) Validaciones y cálculo total
-    const albumIds = [...new Set(items.map(i => Number(i.albumId)))];
-    const albums = await prisma.albums.findMany({ where: { id: { in: albumIds } } });
-    const albumMap = new Map(albums.map(a => [a.id, a]));
-
-    for (const it of items) {
-      const album = albumMap.get(Number(it.albumId));
-      if (!album) throw new Error(`Album ${it.albumId} no encontrado`);
-      if (album.stock < Number(it.quantity)) throw new Error(`Stock insuficiente para album ${album.id}`);
+  
+  async createOrder(userId, items, paymentDetails) {
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new Error('El carrito de compras no puede estar vacío');
     }
 
-    let totalAmount = 0;
-    const normalizedItems = items.map(it => {
-      const album = albumMap.get(Number(it.albumId));
-      const q = Number(it.quantity);
-      const unitPrice = Number(album.price);
-      totalAmount += unitPrice * q;
-      return { albumId: Number(it.albumId), quantity: q, unitPrice };
-    });
+    // Usamos transacción interactivamente con Prisma
+    return await prisma.$transaction(async (tx) => {
+      let totalAmount = 0;
+      const orderItemsData = [];
 
-    // 2) Reserva en BD: crear order PENDING + orderItems + decrementar stock (transacción)
-    const createdOrder = await prisma.$transaction(async (tx) => {
-      const order = await tx.order.create({
-        data: { userId: String(userId), totalAmount, status: 'PENDING' }
-      });
+      // 2. VERIFICACIÓN DE STOCK Y CÁLCULO DE TOTAL
+      for (const item of items) {
+        // Aceptamos ambas formas: albumId o id (compatibilidad)
+        const albumId = item.albumId ?? item.id;
+        if (!albumId) throw new Error('Cada item debe incluir albumId');
 
-      for (const it of normalizedItems) {
-        await tx.orderItem.create({
-          data: { orderId: order.id, albumId: it.albumId, quantity: it.quantity, unitPrice: it.unitPrice }
+        const album = await tx.albums.findUnique({ where: { id: Number(albumId) } });
+        if (!album) {
+          throw new Error(`Album con ID ${albumId} no encontrado.`);
+        }
+
+        if (album.stock < item.quantity) {
+          throw new Error(`Stock insuficiente para ${album.name}. Disponible: ${album.stock}`);
+        }
+
+        const itemTotal = Number(album.price) * item.quantity;
+        totalAmount += itemTotal;
+
+        orderItemsData.push({
+          albumId: album.id,
+          quantity: item.quantity,
+          unitPrice: album.price
         });
+      }
+
+// 3. INTEGRACIÓN DE PAGO (Patrón Strategy Dinámico)
+      
+      // A. Identificamos qué método quiere usar el usuario (ej. "CreditCard", "Bitcoin")
+      // Si no envía nada, asumimos 'CreditCard' por defecto (opcional)
+      const methodToUse = paymentDetails?.method || paymentDetails?.paymentMethod || 'CreditCard';
+
+      if (!methodToUse) {
+        throw new Error("Debe especificar un 'paymentMethod' (ej. CreditCard).");
+      }
+
+      console.log(`Intentando pagar con: ${methodToUse}`);
+
+      // B. Delegamos al Contexto la ejecución
+      // Esto lanzará error si methodToUse es "Bitcoin" porque no existe en el mapa
+      const paymentResult = await PaymentProcessor.process(methodToUse, totalAmount, paymentDetails);
+
+      // 4. ACTUALIZACIÓN DE STOCK Y CREACIÓN DE REGISTROS
+      
+      // A. Descontar Stock
+      for (const it of orderItemsData) {
         await tx.albums.update({
           where: { id: it.albumId },
           data: { stock: { decrement: it.quantity } }
         });
       }
 
-      return order;
-    });
+      // B. Crear la Orden
+      const newOrder = await tx.order.create({
+        data: {
+          userId: String(userId),
+          totalAmount: totalAmount,
+          status: 'COMPLETED'
+        }
+      });
 
-    // 3) Ejecutar el pago (fuera de la transacción)
-    const strategy = this._getStrategy(paymentMethod);
-    const paymentResult = await strategy.processPayment({ amount: totalAmount, currency, paymentMethod, paymentDetails });
-
-if (!paymentResult || !paymentResult.success) {
-  // Pago falló -> compensación estricta: restaurar stock y eliminar la orden creada (no dejamos rastro)
-  try {
-    await prisma.$transaction(async (tx) => {
-      // Restaurar stock
-      for (const it of normalizedItems) {
-        await tx.albums.update({
-          where: { id: it.albumId },
-          data: { stock: { increment: it.quantity } }
-        });
+      // C. Crear los Detalles (Items)
+      const itemsWithOrderId = orderItemsData.map(item => ({
+        ...item,
+        orderId: newOrder.id
+      }));
+      
+      if (itemsWithOrderId.length) {
+        await tx.orderItem.createMany({ data: itemsWithOrderId });
       }
 
-      // Borrar items de la orden
-      await tx.orderItem.deleteMany({ where: { orderId: createdOrder.id } });
+      // 5. CONFIRMAR TRANSACCIÓN (COMMIT)
+      // Devolvemos la orden con sus items
+      return await tx.order.findUnique({ where: { id: newOrder.id }, include: { items: true } });
 
-      // Borrar la orden
-      await tx.order.delete({ where: { id: createdOrder.id } });
     });
-
-    return { success: false, reason: paymentResult.message || 'payment_failed', payment: paymentResult, orderId: null };
-  } catch (compErr) {
-    // Si falla la compensación, logueamos y devolvemos información para investigarlo
-    console.error('[OrderService] Compensación fallida después de payment failure:', compErr);
-    // Intentamos marcar la orden como PAYMENT_FAILED como fallback
-    try {
-      await prisma.order.update({ where: { id: createdOrder.id }, data: { status: 'PAYMENT_FAILED' } });
-      await prisma.payment.create({
-        data: {
-          orderId: createdOrder.id,
-          provider: (strategy && strategy.providerName) || 'unknown',
-          providerPaymentId: paymentResult && paymentResult.providerPaymentId ? paymentResult.providerPaymentId : null,
-          amount: totalAmount,
-          status: 'FAILED',
-          rawResponse: JSON.stringify(paymentResult.raw || {})
-        }
-      });
-    } catch (fallbackErr) {
-      console.error('[OrderService] Fallback marking failed:', fallbackErr);
-    }
-
-    return { success: false, reason: 'compensation_failed', payment: paymentResult, orderId: createdOrder.id };
-  }
-}
-
-    // 4b) Pago OK -> confirmar en BD: marcar COMPLETED y guardar payment (transacción)
-    const finalOrder = await prisma.$transaction(async (tx) => {
-      await tx.payment.create({
-        data: {
-          orderId: createdOrder.id,
-          provider: strategy.providerName || 'unknown',
-          providerPaymentId: paymentResult.providerPaymentId || null,
-          amount: totalAmount,
-          status: 'SUCCESS',
-          rawResponse: JSON.stringify(paymentResult.raw || {})
-        }
-      });
-
-      await tx.order.update({ where: { id: createdOrder.id }, data: { status: 'COMPLETED' } });
-
-      return tx.order.findUnique({
-        where: { id: createdOrder.id },
-        include: { items: { include: { album: true } }, Payment: true, user: true }
-      });
-    });
-
-    return { success: true, order: finalOrder, payment: paymentResult };
   }
 
-  async listUserOrders({ userId, page = 1, limit = 10 }) {
-    const p = Math.max(1, Number(page) || 1);
-    const l = Math.min(100, Math.max(1, Number(limit) || 10));
-    const skip = (p - 1) * l;
-
-    const [items, total] = await Promise.all([
+  // Obtener historial del usuario
+  async getUserOrders(userId, page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    const where = { userId: String(userId) };
+    const [count, rows] = await Promise.all([
+      prisma.order.count({ where }),
       prisma.order.findMany({
-        where: { userId: String(userId) },
-        include: { items: { include: { album: true } }, Payment: true },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: l
-      }),
-      prisma.order.count({ where: { userId: String(userId) } })
+        where,
+        include: { items: { include: { album: true } } },
+        skip: offset,
+        take: parseInt(limit),
+        orderBy: { createdAt: 'desc' }
+      })
     ]);
-
-    return { items, meta: { page: p, limit: l, total, totalPages: Math.ceil(total / l) || 1 } };
+    return { count, rows };
   }
 
-  async getUserOrder({ userId, orderId }) {
-    const ord = await prisma.order.findUnique({
-      where: { id: Number(orderId) },
-      include: { items: { include: { album: true } }, Payment: true, user: true }
+  // Detalle de orden
+  async getOrderDetail(orderId, userId) {
+    const order = await prisma.order.findFirst({
+      where: { id: Number(orderId), userId: String(userId) },
+      include: { items: { include: { album: true } } }
     });
-    if (!ord) return null;
-    if (String(ord.userId) !== String(userId)) return null;
-    return ord;
+    return order;
   }
 }
 
-module.exports = OrderService;
+module.exports = new OrderService();

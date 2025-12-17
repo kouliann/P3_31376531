@@ -48,6 +48,7 @@ fs.copyFileSync(devDbPath, tmpDbPath);
 
 // Point Prisma to the temp DB file (SQLite file URL format)
 process.env.DATABASE_URL = `file:${tmpDbPath}`;
+console.log(`[useTestDb] Using test DB at: ${tmpDbPath}`);
 
 // optional: also set NODE_ENV=test
 process.env.NODE_ENV = 'test';
