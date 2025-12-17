@@ -1,58 +1,112 @@
+// src/controllers/order.controller.js
 const OrderService = require('../services/OrderService');
 
-// factory opcional: inyecta opciones (apiKey desde env)
-const paymentOptions = { apiKey: process.env.PAYMENT_API_KEY, timeout: process.env.PAYMENT_TIMEOUT ? Number(process.env.PAYMENT_TIMEOUT) : undefined };
-const svc = new OrderService({ paymentOptions });
-
-class orderController {
-    async createOrder(req, res) {
+module.exports = {
+  // POST /orders - Crear Orden Transaccional
+  async create(req, res) {
     try {
-        const user = req.user;
-        if (!user || !user.id) return res.status(401).json({ status: 'fail', data: { message: 'Unauthorized' } });
+      // req.user viene del middleware de autenticación (JWT)
+      // Asegúrate de que tu middleware ponga el 'id' en req.user
+      const userId = req.user.id; 
+      const { items, paymentMethod, paymentDetails } = req.body;
 
-        const { items, paymentMethod, paymentDetails, currency } = req.body;
-
-        const result = await svc.createAndPay({ userId: user.id, items, paymentMethod, paymentDetails, currency });
-
-        if (!result.success) {
-        return res.status(400).json({ status: 'fail', data: { message: 'Payment failed', reason: result.reason, payment: result.payment, orderId: result.orderId } });
+      // 1. Validaciones básicas de entrada
+      if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ 
+          status: 'fail', 
+          data: { message: 'El carrito de compras no puede estar vacío' } 
+        });
+      }
+      
+      // Validamos que vengan los datos mínimos de la tarjeta solo para métodos que lo requieran
+      const method = paymentMethod || paymentDetails?.method || 'CreditCard';
+      if (method.toLowerCase() === 'creditcard' || method.toLowerCase() === 'credit-card') {
+        if (!paymentDetails || !paymentDetails.cardNumber || !paymentDetails.cardHolder) {
+          return res.status(400).json({ 
+            status: 'fail', 
+            data: { message: 'Faltan detalles del pago (tarjeta, titular, etc.)' } 
+          });
         }
+      }
+      
 
-        return res.status(201).json({ status: 'success', data: result.order });
-    } catch (err) {
-        console.error('[orders.createOrder]', err);
-        return res.status(500).json({ status: 'error', message: err.message });
-    }
-    }
+      // 2. Llamamos al Servicio (La lógica pesada y la transacción están allá)
+      // Combinamos paymentMethod y paymentDetails en un solo objeto para el servicio
+      const paymentData = { ...paymentDetails, method: paymentMethod };
+      
+      const order = await OrderService.createOrder(userId, items, paymentData);
 
-    async listOrders(req, res) {
+      // 3. Respuesta Exitosa
+      return res.status(201).json({ 
+        status: 'success', 
+        data: { order } 
+      });
+
+    } catch (error) {
+      // Manejo de errores:
+      // Si el error viene de nuestras validaciones (Stock, Pago rechazado), es un 400.
+      // Si es un error inesperado de código, sería un 500 (aunque aquí simplificamos).
+      console.error("Error al crear orden:", error.message);
+      console.error(error.stack);
+      
+      return res.status(400).json({ 
+        status: 'fail', 
+        message: error.message 
+      });
+    }
+  },
+
+  // GET /orders - Historial del Usuario
+  async getAll(req, res) {
     try {
-        const user = req.user;
-        if (!user || !user.id) return res.status(401).json({ status: 'fail', data: { message: 'Unauthorized' } });
+      // Paginación con valores por defecto
+      const { page = 1, limit = 10 } = req.query;
+      
+      const { count, rows } = await OrderService.getUserOrders(req.user.id, page, limit);
 
-        const { page, limit } = req.query;
-        const data = await svc.listUserOrders({ userId: user.id, page, limit });
-        return res.json({ status: 'success', data });
-    } catch (err) {
-        console.error('[orders.listOrders]', err);
-        return res.status(500).json({ status: 'error', message: err.message });
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          totalItems: count,
+          totalPages: Math.ceil(count / limit),
+          currentPage: parseInt(page),
+          itemsPerPage: parseInt(limit),
+          orders: rows
+        }
+      });
+    } catch (error) {
+      return res.status(500).json({ 
+        status: 'error', 
+        message: 'Error al obtener el historial de órdenes' 
+      });
     }
-    }
+  },
 
-    async getOrder(req, res) {
+  // GET /orders/:id - Detalle de una Orden
+  async getOne(req, res) {
     try {
-        const user = req.user;
-        if (!user || !user.id) return res.status(401).json({ status: 'fail', data: { message: 'Unauthorized' } });
+      const orderId = req.params.id;
+      const userId = req.user.id;
 
-        const ord = await svc.getUserOrder({ userId: user.id, orderId: req.params.id });
-        if (!ord) return res.status(404).json({ status: 'fail', data: { message: 'Not found or not authorized' } });
-        return res.json({ status: 'success', data: ord });
-    } catch (err) {
-        console.error('[orders.getOrder]', err);
-        return res.status(500).json({ status: 'error', message: err.message });
+      const order = await OrderService.getOrderDetail(orderId, userId);
+      
+      if (!order) {
+        return res.status(404).json({ 
+          status: 'fail', 
+          data: { message: 'Orden no encontrada o no pertenece a este usuario' } 
+        });
+      }
+
+      return res.status(200).json({ 
+        status: 'success', 
+        data: { order } 
+      });
+
+    } catch (error) {
+      return res.status(500).json({ 
+        status: 'error', 
+        message: 'Error al obtener el detalle de la orden' 
+      });
     }
-    }
-
-}
-
-module.exports = orderController;
+  }
+};
