@@ -25,6 +25,11 @@ app.options('*', cors());
 
 // Swagger / OpenAPI definition
  const swaggerOptions = {
+
+  swaggerOptions: {
+    url: "/api-docs/swagger.json", // Usa una ruta relativa en lugar de absoluta
+  },
+
   definition: {
     openapi: '3.0.0',
     info: {
@@ -170,7 +175,7 @@ try {
   app.get('/api-docs/swagger.json', (req, res) => res.json(swaggerSpec));
 
   // montar UI y forzar que cargue el JSON vía HTTP (evita problemas de scheme/CORS)
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, { swaggerUrl: '/api-docs/swagger.json' }));
+  app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(null, swaggerOptions));
   console.log('Swagger UI montado en /api-docs (spec en /api-docs/swagger.json)');
 } catch (err) {
   console.error('[swagger] error generando spec:', err && err.message);
@@ -178,8 +183,11 @@ try {
 }
 
 
+
 // Expose swagger UI at /api-docs
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec , { customCssUrl: CSS_URL }));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -803,6 +811,8 @@ app.use('/orders', ordersRouter);
  *     tags:
  *       - Orders
  *     summary: Crea una orden y procesa el pago (OPERACIÓN TRANSACCIONAL)
+ *     security:
+ *      - BearerAuth: []
  *     description: >
  *       Operación transaccional: se crea la orden en estado PENDING, se registran los items y se decrementa
  *       el stock. Si el pago falla se realiza un rollback completo (stock restaurado y orden eliminada).

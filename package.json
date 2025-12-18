@@ -32,7 +32,9 @@
     "supertest": "^7.1.4"
   },
   "jest": {
-    "setupFiles": ["<rootDir>/test/useTestDb.js"]
+    "setupFiles": [
+      "<rootDir>/test/useTestDb.js"
+    ]
   },
   "keywords": [],
   "author": "",
