@@ -54,7 +54,23 @@ class OrderService {
 
       // B. Delegamos al Contexto la ejecución
       // Esto lanzará error si methodToUse es "Bitcoin" porque no existe en el mapa
-      const paymentResult = await PaymentProcessor.process(methodToUse, totalAmount, paymentDetails);
+      let paymentResult;
+      try {
+        paymentResult = await PaymentProcessor.process(methodToUse, totalAmount, paymentDetails);
+        console.log('Payment result:', paymentResult);
+      } catch (err) {
+        // Log y re-lanzamos para que el controller pueda mapear a 504/400 según corresponda
+        console.error('Payment processing error:', err && err.message, 'isTimeout=', !!(err && err.isTimeout));
+        throw err;
+      }
+
+      // Si por algún motivo la estrategia devolviera un objeto indicando fallo (sin lanzar), lo normalizamos aquí
+      if (!paymentResult || paymentResult.success === false) {
+        const err = new Error(paymentResult && paymentResult.message ? paymentResult.message : 'Pago rechazado');
+        if (paymentResult && paymentResult.isTimeout) err.isTimeout = true;
+        err.payment = paymentResult;
+        throw err;
+      }
 
       // 4. ACTUALIZACIÓN DE STOCK Y CREACIÓN DE REGISTROS
       
@@ -85,11 +101,34 @@ class OrderService {
         await tx.orderItem.createMany({ data: itemsWithOrderId });
       }
 
-      // 5. CONFIRMAR TRANSACCIÓN (COMMIT)
-      // Devolvemos la orden con sus items
-      return await tx.order.findUnique({ where: { id: newOrder.id }, include: { items: true } });
+      // D. Registrar pago
+      try {
+        await tx.payment.create({
+          data: {
+            orderId: newOrder.id,
+            provider: methodToUse,
+            providerPaymentId: paymentResult.providerPaymentId || null,
+            amount: totalAmount,
+            status: 'SUCCESS',
+            rawResponse: JSON.stringify(paymentResult.raw || paymentResult)
+          }
+        });
+      } catch (e) {
+        console.error('Error creando registro de pago en DB:', e && e.message);
+        // no abort: prefer not to block order creation if logging payment fails
+      }
 
-    });
+      // 5. CONFIRMAR TRANSACCIÓN (COMMIT)
+      // Devolvemos la orden con sus items y pagos
+      return await tx.order.findUnique({ where: { id: newOrder.id }, include: { items: true, Payment: true } });
+
+    },
+    {
+      maxWait: 7000, 
+      timeout: 40000 
+    }
+  
+  );
   }
 
   // Obtener historial del usuario

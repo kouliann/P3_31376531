@@ -63,55 +63,58 @@ Accept: application/json
 ### Create product (POST /albums)
 POST http://localhost:3000/albums
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc0NmQ5OWJhLTQ2ZTctNGQ4My1hZjFjLTc1NTkxYTlhZGY1YSIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1NjcxODksImV4cCI6MTc2NTU3MDc4OX0.isZqcYi8YoxnREThoufdV_tx-yKYNs2U2o6rQvvnXmQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMjg5ODMsImV4cCI6MTc2NjAzMjU4M30.MWUNwUN2ynI2ewS-mVSrQd6vVACEeYJtdHHeGSwXPps
 
 {
- "name": "Short n' Sweet",
-  "description": "Siendo el sexto album de estudio de Sabrina, se posiciona como la catapulta que eleva su carrera, este album refleja su evolución artística y personal, consolidándola como una de las voces más influyentes de su generación, este album explora como sabrina ve sus relaciones romanticas pasadas y como estas la han cambiado.",
-  "price": 10.99,
-  "categoryId":"1",
+  "name": "Hit me hard and soft",
+  "description": "busca encapsular extremos emocionales: la vulnerabilidad dulce y lo intenso/oscuro, reflejando la complejidad de las relaciones y la autoexploración, como una petición imposible de ser ambas cosas a la vez, fuerte y tierno",
+  "price": 20.00,
+  "categoryId":"3",
   "stock": 100,
-  "author": "Sabrina Carpenter",
-  "discography": "Island Records",
+  "author": "Billie Eilish",
+  "discography": "Darkroom e Interscope Records",
   "deluxeVersion": true,
-  "tags":[1, 2, 4, 5]
+  "tags":[2, 8, 10, 11, 12]
   
 }
+
 
 ### Create category (POST /category)
 POST http://localhost:3000/categories
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc0NmQ5OWJhLTQ2ZTctNGQ4My1hZjFjLTc1NTkxYTlhZGY1YSIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1NjcxODksImV4cCI6MTc2NTU3MDc4OX0.isZqcYi8YoxnREThoufdV_tx-yKYNs2U2o6rQvvnXmQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMjg5ODMsImV4cCI6MTc2NjAzMjU4M30.MWUNwUN2ynI2ewS-mVSrQd6vVACEeYJtdHHeGSwXPps
 
 {
-  "name": "Pop ",
-  "description": "Música popular con ritmos pegajosos y letras accesibles."
+  "name": "Pop Alternativo",
+  "description": "género musical que fusiona la estructura pegadiza del pop con sonidos, instrumentación y temáticas del rock alternativo, el indie y géneros experimentales"
 }
 
 ### create tags (POST /tags)
 POST http://localhost:3000/tags
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc0NmQ5OWJhLTQ2ZTctNGQ4My1hZjFjLTc1NTkxYTlhZGY1YSIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjU1NjcxODksImV4cCI6MTc2NTU3MDc4OX0.isZqcYi8YoxnREThoufdV_tx-yKYNs2U2o6rQvvnXmQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMjk4MTksImV4cCI6MTc2NjAzMzQxOX0.t1N5kFiLBHERJEl3p82nhRTE16hU7lnWBCh64TL0XDw
 
 {
-  "name": "narrativa personal"
+  "name": "Pop Alternativo"
 }
 
 ### Update album (PUT /albums/:id)
 PUT http://localhost:3000/albums/2
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMxZWVkYjg1LTlhZjAtNGU3Ni05NDE1LTZjNzUzOGFlOTMwOCIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjUzOTkzNDYsImV4cCI6MTc2NTQwMjk0Nn0.vqO9lOaEHeM01IDUEhzyCPLXnCiQacOJ-LhyDHRKx1I
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMjk4MTksImV4cCI6MTc2NjAzMzQxOX0.t1N5kFiLBHERJEl3p82nhRTE16hU7lnWBCh64TL0XDw
+
 
 {
-  "name": "Short n' Sweet",
-  "description": "es el sexto álbum de estudio de la cantautora estadounidense Sabrina Carpenter, publicado el 23 de agosto de 2024 por el sello Island Records",
-  "price": 14.99,
-  "categoryId":"1",
-  "stock": 50,
-  "author": "Sabrina Carpenter",
-  "discography": "Island Records",
-  "deluxeVersion": true,
-  "tags":[3, 4, 5]
+  "name": "Hit me hard and soft",
+  "description": "busca encapsular extremos emocionales: la vulnerabilidad dulce y lo intenso/oscuro, reflejando la complejidad de las relaciones y la autoexploración, como una petición imposible de ser ambas cosas a la vez, fuerte y tierno",
+  "price": 20.00,
+  "categoryId":"3",
+  "stock": 100,
+  "author": "Billie Eilish",
+  "discography": "Darkroom e Interscope Records",
+  "deluxeVersion": false,
+  "tags":[2, 8, 10, 11, 12]
+  
 }
 
 ### update category (PUT /categories/:id)
@@ -122,11 +125,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMxZWVkYjg1L
 ### Create order (POST /orders)
 POST http://localhost:3000/orders
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMTAyOTQsImV4cCI6MTc2NjAxMzg5NH0.dIdNho3y4yB75Dp2pDyaON1l0anwsEI78l7oynoqonQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMjg5ODMsImV4cCI6MTc2NjAzMjU4M30.MWUNwUN2ynI2ewS-mVSrQd6vVACEeYJtdHHeGSwXPps
 
 {
   "items": [
-    { "id": 1, "quantity": 2 }
+    { "id": 1, "quantity": 9 }
   ],
   "paymentMethod": "CreditCard",
   "paymentDetails": {
@@ -141,8 +144,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiL
 
 ### get all orders (GET /orders)
 GET http://localhost:3000/orders
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMTAyOTQsImV4cCI6MTc2NjAxMzg5NH0.dIdNho3y4yB75Dp2pDyaON1l0anwsEI78l7oynoqonQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMTk0NzEsImV4cCI6MTc2NjAyMzA3MX0.FIL-9Ivqfkzq9pkjJS2k4DD31Jy0ZFY5HEyFZw_GQ_E
 
 ### get order by id (GET /orders/:id)
 GET http://localhost:3000/orders/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMTAyOTQsImV4cCI6MTc2NjAxMzg5NH0.dIdNho3y4yB75Dp2pDyaON1l0anwsEI78l7oynoqonQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMTk0NzEsImV4cCI6MTc2NjAyMzA3MX0.FIL-9Ivqfkzq9pkjJS2k4DD31Jy0ZFY5HEyFZw_GQ_E

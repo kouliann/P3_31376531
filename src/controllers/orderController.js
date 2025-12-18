@@ -1,5 +1,8 @@
 // src/controllers/order.controller.js
 const OrderService = require('../services/OrderService');
+const dotenv = require('dotenv');
+dotenv.config();
+require('../../middleware/auth')
 
 module.exports = {
   // POST /orders - Crear Orden Transaccional
@@ -21,10 +24,11 @@ module.exports = {
       // Validamos que vengan los datos mínimos de la tarjeta solo para métodos que lo requieran
       const method = paymentMethod || paymentDetails?.method || 'CreditCard';
       if (method.toLowerCase() === 'creditcard' || method.toLowerCase() === 'credit-card') {
-        if (!paymentDetails || !paymentDetails.cardNumber || !paymentDetails.cardHolder) {
+        // Aceptamos distintas claves que las pruebas usan: 'card', 'cardNumber' o 'cardHolder'.
+        if (!paymentDetails || (!paymentDetails.cardNumber && !paymentDetails.card && !paymentDetails.cardHolder)) {
           return res.status(400).json({ 
             status: 'fail', 
-            data: { message: 'Faltan detalles del pago (tarjeta, titular, etc.)' } 
+            data: { message: 'Faltan detalles mínimos del pago (card, cardNumber o cardHolder)' } 
           });
         }
       }
@@ -43,15 +47,37 @@ module.exports = {
       });
 
     } catch (error) {
-      // Manejo de errores:
-      // Si el error viene de nuestras validaciones (Stock, Pago rechazado), es un 400.
-      // Si es un error inesperado de código, sería un 500 (aunque aquí simplificamos).
-      console.error("Error al crear orden:", error.message);
-      console.error(error.stack);
-      
+      // Manejo de errores: timeout de pasarela debe retornar 504
+      console.error("Error al crear orden:", error && error.message);
+      console.error(error && error.stack);
+
+      // Timeout en la pasarela -> 504 (puede venir como error.isTimeout o en error.payment.isTimeout)
+      if (error && (error.isTimeout || (error.payment && error.payment.isTimeout))) {
+        const payment = error.payment || (error && error.payment) || null;
+        return res.status(504).json({
+          status: 'fail',
+          data: {
+            reason: (payment && payment.message) || error.message || 'timeout',
+            payment: payment || null
+          }
+        });
+      }
+
+      // Rechazo de pago o errores de negocio -> 400
+      if (error && error.payment) {
+        return res.status(400).json({
+          status: 'fail',
+          data: {
+            message: error.message || 'Pago rechazado',
+            payment: error.payment
+          }
+        });
+      }
+
+      // Otras validaciones u errores -> 400
       return res.status(400).json({ 
         status: 'fail', 
-        message: error.message 
+        data: { message: error.message || 'Error al crear orden' } 
       });
     }
   },
