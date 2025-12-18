@@ -16,14 +16,13 @@ describe('Orders transactional tests', () => {
   let album2;
 
   beforeAll(async () => {
-    // ensure clean
-    await prisma.payment.deleteMany().catch(()=>{});
-    await prisma.orderItem.deleteMany().catch(()=>{});
-    await prisma.order.deleteMany().catch(()=>{});
-    await prisma.albums.deleteMany().catch(()=>{});
-    await prisma.tag.deleteMany().catch(()=>{});
-    await prisma.category.deleteMany().catch(()=>{});
-    await prisma.user.deleteMany().catch(()=>{});
+  // 1. Borrar primero las tablas que tienen claves foráneas hacia User
+  await prisma.order.deleteMany(); // Si tienes reviews
+  // ... cualquier otra tabla que use userId
+  
+  // 2. Ahora sí puedes borrar los usuarios
+  await prisma.user.deleteMany();
+
 
     // create user via API and obtain token
     const u = { nombreCompleto: 'OrderTester', email: 'ordertester@example.com', password: 'Secret123!' };
