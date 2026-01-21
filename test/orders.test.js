@@ -17,7 +17,14 @@ describe('Orders transactional tests', () => {
 
   beforeAll(async () => {
   // 1. Borrar primero las tablas que tienen claves foráneas hacia User
+<<<<<<< HEAD
   await prisma.order.deleteMany(); 
+=======
+  await prisma.order.deleteMany(); // Si tienes reviews
+  // ... cualquier otra tabla que use userId
+  
+  // 2. Ahora sí puedes borrar los usuarios
+>>>>>>> 10e2795b204348186336b1d46cb4f91d38b3e29d
   await prisma.user.deleteMany();
 
 
