@@ -125,7 +125,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMxZWVkYjg1L
 ### Create order (POST /orders)
 POST http://localhost:3000/orders
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMjg5ODMsImV4cCI6MTc2NjAzMjU4M30.MWUNwUN2ynI2ewS-mVSrQd6vVACEeYJtdHHeGSwXPps
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3Njg5NTk0OTksImV4cCI6MTc2ODk2MzA5OX0.Thl44SgvJFLB1m7LLX68BwxIsno0asaKqBhRObyYQ3I
 
 {
   "items": [

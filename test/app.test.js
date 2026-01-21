@@ -66,7 +66,14 @@ test('POST /auth/register -> 200/201 (registro básico)', async () => {
 
   // Limpiamos el usuario temporal creado en este bloque
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { email: publicUserPayload.email } });
+    // delete dependents first to avoid FK constraint errors
+    await prisma.orderItem.deleteMany().catch(()=>{});
+    await prisma.payment.deleteMany().catch(()=>{});
+    await prisma.order.deleteMany().catch(()=>{});
+    await prisma.albums.deleteMany().catch(()=>{});
+    await prisma.tag.deleteMany().catch(()=>{});
+    await prisma.category.deleteMany().catch(()=>{});
+    await prisma.user.deleteMany({ where: { email: publicUserPayload.email } }).catch(()=>{});
   });
 
 });
@@ -84,12 +91,24 @@ describe('Autenticación y rutas protegidas', () => {
 
   beforeAll(async () => {
     // asegurar DB de test limpia
-    await prisma.user.deleteMany();
+    await prisma.orderItem.deleteMany().catch(()=>{});
+    await prisma.payment.deleteMany().catch(()=>{});
+    await prisma.order.deleteMany().catch(()=>{});
+    await prisma.albums.deleteMany().catch(()=>{});
+    await prisma.tag.deleteMany().catch(()=>{});
+    await prisma.category.deleteMany().catch(()=>{});
+    await prisma.user.deleteMany().catch(()=>{});
   });
 
   afterAll(async () => {
-    await prisma.user.deleteMany();
-    await prisma.$disconnect();
+    await prisma.orderItem.deleteMany().catch(()=>{});
+    await prisma.payment.deleteMany().catch(()=>{});
+    await prisma.order.deleteMany().catch(()=>{});
+    await prisma.albums.deleteMany().catch(()=>{});
+    await prisma.tag.deleteMany().catch(()=>{});
+    await prisma.category.deleteMany().catch(()=>{});
+    await prisma.user.deleteMany().catch(()=>{});
+    await prisma.$disconnect();
   });
 
   test('registra un usuario (éxito)', async () => {
@@ -179,6 +198,9 @@ describe('API: categorías, tags, albums (CRUD protegido + lectura pública)', (
 
   beforeAll(async () => {
     // limpiar DB
+    await prisma.orderItem.deleteMany().catch(()=>{});
+    await prisma.payment.deleteMany().catch(()=>{});
+    await prisma.order.deleteMany().catch(()=>{});
     await prisma.albums.deleteMany().catch(()=>{});
     await prisma.tag.deleteMany().catch(()=>{});
     await prisma.category.deleteMany().catch(()=>{});
@@ -191,6 +213,9 @@ describe('API: categorías, tags, albums (CRUD protegido + lectura pública)', (
   });
 
   afterAll(async () => {
+    await prisma.orderItem.deleteMany().catch(()=>{});
+    await prisma.payment.deleteMany().catch(()=>{});
+    await prisma.order.deleteMany().catch(()=>{});
     await prisma.albums.deleteMany().catch(()=>{});
     await prisma.tag.deleteMany().catch(()=>{});
     await prisma.category.deleteMany().catch(()=>{});
