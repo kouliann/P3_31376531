@@ -8,6 +8,7 @@ body {
 :root{
     --primary-color: #eecebf; 
     --secondary-color: #845040; 
+    --third-color: #f6e1df;
 }
 
 header { 
@@ -18,13 +19,46 @@ header {
    
 }
 
+button:hover{
+      background-color: var(--secondary-color);
+  color: var(--primary-color);
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 20px;
+  transform:scale(1.00);
+  cursor: pointer;
+}
+
+button { 
+  background-color: var(--third-color);
+  color: var(--secondary-color);
+  border-radius: 10px;
+  padding: 10px 20px;
+  margin: 20px;
+  transition: all 0.2s ease-in-out;
+    
+
+}
+
+a:hover{
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border-radius: 10px;
+    padding: 10px 20px;
+    transition: all 0.2s ease-in-out;
+}
+
+a{
+    transition: all 0.2s ease-in-out;
+}
+
 a:-webkit-any-link {
     color: inherit; 
     text-decoration: none; 
 }
 
 main { 
-    display: flex; 
+
     gap: 2rem; 
     padding: 1rem; 
 }
@@ -35,13 +69,19 @@ section {
     border-radius: 6px; 
     box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
     flex: 1; 
+    text-align: center;
+}
+
+div{
+    text-align: center;
 }
 
 input {
     padding: 0.5rem; 
     border: 1px solid #ccc; 
     border-radius: 4px; 
-    margin-right: 0.5rem; 
+    text-align: center; 
+    margin: auto;
 
 }
 
@@ -64,15 +104,9 @@ li{
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     justify-content: center;
+    text-align: center;
 }
-button { 
-    padding: 0.5rem 1rem; 
-    margin: 1rem; 
-    border-radius: 10px;
-    border:#845040;
-    
 
-}
 
 ul { 
     border-bottom: #845040;
@@ -80,6 +114,7 @@ ul {
     padding: 0; 
     display: grid;
     grid-template-columns: auto;
+    margin: auto 20%;
 }
 
 form{

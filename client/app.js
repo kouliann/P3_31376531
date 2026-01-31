@@ -36,25 +36,39 @@ function saveCart(cart){
   localStorage.setItem(CART_KEY, JSON.stringify(cart)); updateCartCount();
 }
 
-function addToCart(idOrObj, name, title, price) {
-  let id, itemName, itemTitle, itemPrice;
+function addToCart(idOrObj, name, title, price, quantity = 1) {
+  let id, itemName, itemTitle, itemPrice, itemStock;
   if (idOrObj && typeof idOrObj === 'object') {
     id = idOrObj.id;
     itemName = idOrObj.name || idOrObj.title;
     itemTitle = idOrObj.title;
     itemPrice = idOrObj.price;
+    itemStock = idOrObj.stock; // may be undefined
   } else {
     id = idOrObj;
     itemName = name || title;
     itemTitle = title;
     itemPrice = price;
   }
+  quantity = parseInt(quantity, 10) || 1;
+  if (quantity <= 0) quantity = 1;
   const cart = loadCart();
   const found = cart.find(c => c.id === id);
   if (found) {
-    found.quantity = (found.quantity || 1) + 1;
+    const newQty = (found.quantity || 1) + quantity;
+    if (typeof itemStock === 'number' && newQty > itemStock) {
+      showToast('Cantidad solicitada supera stock disponible', {type:'error'});
+      found.quantity = itemStock;
+    } else {
+      found.quantity = newQty;
+    }
   } else {
-    cart.push({ id, name: itemName, title: itemTitle, price: itemPrice, quantity: 1 });
+    const qtyToStore = (typeof itemStock === 'number' && quantity > itemStock) ? itemStock : quantity;
+    if (typeof itemStock === 'number' && qtyToStore === 0) {
+      showToast('Producto sin stock', {type:'error'});
+      return;
+    }
+    cart.push({ id, name: itemName, title: itemTitle, price: itemPrice, quantity: qtyToStore, stock: itemStock });
   }
   saveCart(cart);
 }
@@ -160,11 +174,24 @@ async function loadAlbums(query={}){
   }
   const list = document.getElementById('albumsList'); list.innerHTML = '';
   items.forEach(it=>{
+    const qtyId = 'qty-' + (it.id || Math.random().toString(36).slice(2,8));
+    const qtyInput = el('input', { type: 'number', id: qtyId, min: 1, value: 1, style: 'width:60px' });
+    if (typeof it.stock === 'number') qtyInput.setAttribute('max', it.stock);
+    const addBtn = el('button', { onClick: () => {
+      const qel = document.getElementById(qtyId);
+      const q = parseInt(qel && qel.value, 10) || 1;
+      addToCart({ id: it.id, name: it.name || it.title, title: it.title, price: it.price || 0, stock: it.stock }, null, null, null, q);
+    } }, 'Agregar');
+    if (typeof it.stock === 'number' && it.stock <= 0) {
+      addBtn.setAttribute('disabled', 'disabled');
+      qtyInput.setAttribute('disabled', 'disabled');
+    }
+    const stockText = el('span', {}, ' Stock: ' + (typeof it.stock === 'number' ? it.stock : 'N/A'));
     const li = el('li', {},
       el('strong',{}, it.name || it.title || ('Álbum ' + (it.id||''))),
       el('br'),
       (it.price?('$'+it.price):''), ' ',
-      el('button',{onClick:()=>addToCart({id:it.id, name: it.name||it.title, price: it.price||0})}, 'Agregar')
+      stockText, ' ', qtyInput, ' ', addBtn
     );
     list.appendChild(li);
   });
@@ -219,9 +246,27 @@ function renderRegister(){
 function renderCart(){
   const view = document.getElementById('view'); view.innerHTML = '';
   const cart = loadCart();
-  const list = el('ul',{}, ...cart.map(i=> el('li',{}, `${i.name} x ${i.quantity} - $${i.price||0} `, el('button',{onClick:()=>{ const c = loadCart(); 
-    const idx=c.findIndex(x=>x.id===i.id); if(idx>=0){ c.splice(idx,1); saveCart(c); 
-      renderCart(); } }}, 'Eliminar'))));
+  const listItems = cart.map(i=>{
+    const qtyId = 'cart-qty-' + i.id;
+    const qtyInput = el('input', { type: 'number', id: qtyId, min: 1, value: i.quantity || 1, style: 'width:60px' });
+    if (typeof i.stock === 'number') qtyInput.setAttribute('max', i.stock);
+    qtyInput.addEventListener('change', ()=>{
+      const v = parseInt(document.getElementById(qtyId).value, 10) || 1;
+      const c = loadCart();
+      const idx = c.findIndex(x=>x.id===i.id);
+      if(idx>=0){
+        let newV = v;
+        if (typeof c[idx].stock === 'number' && newV > c[idx].stock) { newV = c[idx].stock; showToast('Cantidad supera stock, ajustada', {type:'error'}); }
+        c[idx].quantity = newV;
+        saveCart(c);
+        renderCart();
+      }
+    });
+    const removeBtn = el('button',{onClick:()=>{ const c = loadCart();
+      const idx=c.findIndex(x=>x.id===i.id); if(idx>=0){ c.splice(idx,1); saveCart(c); renderCart(); } }}, 'Eliminar');
+    return el('li', {}, `${i.name} - $${i.price||0} `, qtyInput, ' x', ` `, el('span',{}, `Subtotal: $${(i.price||0)*(i.quantity||1)}`), ' ', removeBtn);
+  });
+  const list = el('ul', {}, ...listItems);
   const total = cart.reduce((s,i)=>s + (i.price||0)*(i.quantity||1),0);
   const footer = el('div',{}, el('strong',{}, 'Total: $' + total), ' ', el('button',{onClick:()=>{ 
     if(!isAuthenticated()){ 
