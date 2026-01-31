@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var path = require('path');
 
 const auth = require('../middleware/auth');
 const UserController = require('../src/controllers/userControllers');
@@ -10,11 +11,11 @@ const userService = new UserService();
 
 /* GET home page. */
 router.get('/', async (req, res) => {
+  // Servir la SPA principal (index.html) desde la carpeta client
   try {
-    const users = await controller.userService.getAllUsers();
-    return res.json({ status: 'success', data: users });
+    return res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   } catch (err) {
-    return res.status(500).json({ status: 'error', message: 'DB error' });
+    return res.status(500).json({ status: 'error', message: 'Cannot load frontend' });
   }
 });
 

@@ -101,19 +101,19 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiL
 ### Update album (PUT /albums/:id)
 PUT http://localhost:3000/albums/2
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3NjYwMjk4MTksImV4cCI6MTc2NjAzMzQxOX0.t1N5kFiLBHERJEl3p82nhRTE16hU7lnWBCh64TL0XDw
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3Njk1NDkzNTEsImV4cCI6MTc2OTU1Mjk1MX0.TwbNmhZqsxFigtD-FvPcD0y91Uu9S1x6CkPGKbDB0gw
 
 
 {
-  "name": "Hit me hard and soft",
-  "description": "busca encapsular extremos emocionales: la vulnerabilidad dulce y lo intenso/oscuro, reflejando la complejidad de las relaciones y la autoexploración, como una petición imposible de ser ambas cosas a la vez, fuerte y tierno",
-  "price": 20.00,
-  "categoryId":"3",
+  "name": "Evermore",
+  "description": "Considerado el hermano del album 'folklore', evermore llega con una narrativa igual de profunda, contando historias complejas mediante retoricas y simbolismos.",
+  "price": 12.99,
+  "categoryId":"2",
   "stock": 100,
-  "author": "Billie Eilish",
-  "discography": "Darkroom e Interscope Records",
-  "deluxeVersion": false,
-  "tags":[2, 8, 10, 11, 12]
+  "author": "Taylor Swift",
+  "discography": "Republic Records.",
+  "deluxeVersion": true,
+  "tags":[6,7,8,9]
   
 }
 
@@ -125,7 +125,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMxZWVkYjg1L
 ### Create order (POST /orders)
 POST http://localhost:3000/orders
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3Njg5NTk0OTksImV4cCI6MTc2ODk2MzA5OX0.Thl44SgvJFLB1m7LLX68BwxIsno0asaKqBhRObyYQ3I
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTM0YjBiLWFhNDEtNDlhZC1hODA1LTM1OGU0MjQ1MWRlMyIsImVtYWlsIjoiRWxpYW5AZXhhbXBsZS5jb20iLCJpYXQiOjE3Njk2MzMzNjUsImV4cCI6MTc2OTYzNjk2NX0.OQ8CYgY12rvFllPGIBNqnbxUsujiFgPDkmo4JFyPGZM
 
 {
   "items": [

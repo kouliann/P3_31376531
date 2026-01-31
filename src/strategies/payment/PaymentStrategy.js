@@ -7,20 +7,22 @@ class CreditCardPaymentStrategy {
   async processPayment(amount, details) {
     // Validaciones mínimas
     if (!details) details = {};
-    if (!details.cardNumber && !details.card && !details.cardHolder) {
-      // Si faltan datos, devolvemos objeto indicando fallo (OrderService/Controller lo manejará)
-      return { success: false, message: 'Faltan datos mínimos de pago' };
+    // Aceptar varias claves para el titular: cardHolder, cardholder, fullName, name
+    const cardNumber = details.cardNumber || details.card;
+    const cardHolder = details.cardHolder || details.cardholder || details.fullName || details.name;
+    if (!cardNumber || !cardHolder) {
+      return { success: false, message: 'Faltan datos mínimos de pago (cardNumber y nombre del titular)' };
     }
 
     // Preparar body de la pasarela
     const body = {
-      amount: Number(amount).toString(),
+      amount: Number(amount).toFixed(2).toString(),
       currency: (details.currency || 'USD'),
-      'card-number': details.cardNumber || details.card,
+      'card-number': cardNumber,
       cvv: details.cvv,
       'expiration-month': details.expMonth,
       'expiration-year': details.expYear,
-      'full-name': details.cardHolder || details.cardholder,
+      'full-name': cardHolder,
       description: 'Compra en la tienda',
       reference: `ref-${Date.now()}`
     };
@@ -31,14 +33,23 @@ class CreditCardPaymentStrategy {
     }
 
     try {
+      // timeout configurables (ms)
+      const timeoutMs = Number(process.env.FAKE_PAYMENT_TIMEOUT_MS || 5000);
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
+
+      console.log('Payment request body:', body);
       const resp = await fetch('https://fakepayment.onrender.com/payments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.FAKE_PAYMENT_API_KEY}`
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        signal: controller.signal
       });
+
+      clearTimeout(id);
 
       // Log útil para debugging
       console.log('Payment API status', resp.status, resp.statusText);
@@ -52,13 +63,19 @@ class CreditCardPaymentStrategy {
       }
 
       if (!resp.ok || !parsed.success) {
-        return { success: false, message: parsed && parsed.message, errors: parsed && parsed.errors };
+        console.error('Payment gateway rejected response:', { status: resp.status, statusText: resp.statusText, body: parsed });
+        return { success: false, message: parsed && parsed.message, errors: parsed && parsed.errors, raw: parsed };
       }
 
       return { success: true, providerPaymentId: parsed.data.transaction_id, raw: parsed };
 
     } catch (err) {
-      // Detectar timeout o problemas de red
+      // Detectar timeout o problemas de red/abort
+      const isAbort = err && (err.name === 'AbortError' || err.type === 'aborted');
+      if (isAbort) {
+        console.error('Payment request aborted (timeout)');
+        return { success: false, message: 'timeout', isTimeout: true };
+      }
       if (err && err.code === 'ETIMEDOUT') {
         return { success: false, message: String(err.message || 'timeout'), isTimeout: true };
       }

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi Tienda - Frontend</title>
+  <link rel="stylesheet" href="/style.css">
+  <meta name="description" content="Frontend minimal para la API">
+</head>
+<body>
+  <header>
+    <h1>Elian's Shop</h1>
+    <nav>
+      <a href="#/catalog">Catálogo</a> |
+      <a href="#/cart">Carrito (<span id="cartCount">0</span>)</a> |
+      <a href="#/orders" id="navOrders">Mis Pedidos</a> |
+      <a href="#/login" id="navAuth">Iniciar Sesión</a>
+    </nav>
+  </header>
+
+  <main id="view" class="main">
+    <!-- Views will be rendered here -->
+  </main>
+
+  <footer>
+    <small>API y documentación: <a href="/api-docs">/api-docs</a></small>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

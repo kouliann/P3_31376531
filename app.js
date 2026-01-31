@@ -15,6 +15,7 @@ var albumsRouter = require('./src/routes/AlbumsRoutes');
 var categoryRouter = require('./src/routes/categoryRoutes');
 var tagsRouter = require('./src/routes/tagsRoutes');
 const ordersRouter = require('./src/routes/ordersRoutes');
+var authRouter = require('./src/routes/auth');
 
 const cors = require('cors');
 
@@ -210,6 +211,19 @@ app.use('/albums', albumsRouter);
 app.use('/categories', categoryRouter);
 app.use('/tags', tagsRouter);
 app.use('/orders', ordersRouter);
+
+// Montar los mismos routers bajo el prefijo /api para un único origen API
+app.use('/api/users', usuariosRouter);
+app.use('/api/albums', albumsRouter);
+app.use('/api/categories', categoryRouter);
+app.use('/api/tags', tagsRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/auth', authRouter);
+app.use('/auth', authRouter);
+
+// Servir archivos estáticos del frontend (carpeta client / posible build)
+app.use(express.static(path.join(__dirname, 'client')));
+app.use(express.static(path.join(__dirname, 'client', 'build')));
 
 
 /////////////////// INICIO ENDPOINTS ///////////////////////
@@ -973,6 +987,16 @@ app.get('/ping', function(req, res) {
 /////////////////// FIN ENDPOINTS ///////////////////////
 
 
+
+// Envío del index de la SPA para rutas no-API (permitir acceso a /api y /api-docs)
+app.get('*', function(req, res, next) {
+  if (req.method !== 'GET') return next();
+  // No interceptar rutas de la API, documentación o assets
+  if (req.path.startsWith('/api') || req.path.startsWith('/api-docs') || req.path.startsWith('/client') || req.path.startsWith('/public')) {
+    return next();
+  }
+  res.sendFile(path.join(__dirname, 'client', 'index.html'));
+});
 
 
 // catch 404 and forward to error handler

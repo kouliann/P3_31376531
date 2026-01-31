@@ -9,72 +9,65 @@ class OrderService {
     if (!Array.isArray(items) || items.length === 0) {
       throw new Error('El carrito de compras no puede estar vacío');
     }
+    // Primera fase: validación y cálculo del total fuera de la transacción
+    let totalAmount = 0;
+    const orderItemsData = [];
 
-    // Usamos transacción interactivamente con Prisma
+    for (const item of items) {
+      const albumId = item.albumId ?? item.id;
+      if (!albumId) throw new Error('Cada item debe incluir albumId');
+
+      const album = await prisma.albums.findUnique({ where: { id: Number(albumId) } });
+      if (!album) {
+        throw new Error(`Album con ID ${albumId} no encontrado.`);
+      }
+
+      if (album.stock < item.quantity) {
+        throw new Error(`Stock insuficiente para ${album.name}. Disponible: ${album.stock}`);
+      }
+
+      const itemTotal = Number(album.price) * item.quantity;
+      totalAmount += itemTotal;
+
+      orderItemsData.push({
+        albumId: album.id,
+        quantity: item.quantity,
+        unitPrice: album.price
+      });
+    }
+
+    // INTEGRACIÓN DE PAGO: fuera de la transacción para no bloquear DB durante la llamada HTTP
+    const methodToUse = paymentDetails?.method || paymentDetails?.paymentMethod || 'CreditCard';
+    if (!methodToUse) throw new Error("Debe especificar un 'paymentMethod' (ej. CreditCard).");
+
+    console.log(`Intentando pagar con: ${methodToUse} por monto ${totalAmount}`);
+
+    let paymentResult;
+    try {
+      paymentResult = await PaymentProcessor.process(methodToUse, totalAmount, paymentDetails);
+      console.log('Payment result:', paymentResult);
+    } catch (err) {
+      console.error('Payment processing error:', err && err.message, 'isTimeout=', !!(err && err.isTimeout));
+      throw err;
+    }
+
+    if (!paymentResult || paymentResult.success === false) {
+      const err = new Error(paymentResult && paymentResult.message ? paymentResult.message : 'Pago rechazado');
+      if (paymentResult && paymentResult.isTimeout) err.isTimeout = true;
+      err.payment = paymentResult;
+      throw err;
+    }
+
+    // Segunda fase: realizar cambios en DB dentro de la transacción (re-verificar stock y crear registros)
     return await prisma.$transaction(async (tx) => {
-      let totalAmount = 0;
-      const orderItemsData = [];
-
-      // 2. VERIFICACIÓN DE STOCK Y CÁLCULO DE TOTAL
-      for (const item of items) {
-        // Aceptamos ambas formas: albumId o id (compatibilidad)
-        const albumId = item.albumId ?? item.id;
-        if (!albumId) throw new Error('Cada item debe incluir albumId');
-
-        const album = await tx.albums.findUnique({ where: { id: Number(albumId) } });
-        if (!album) {
-          throw new Error(`Album con ID ${albumId} no encontrado.`);
-        }
-
-        if (album.stock < item.quantity) {
-          throw new Error(`Stock insuficiente para ${album.name}. Disponible: ${album.stock}`);
-        }
-
-        const itemTotal = Number(album.price) * item.quantity;
-        totalAmount += itemTotal;
-
-        orderItemsData.push({
-          albumId: album.id,
-          quantity: item.quantity,
-          unitPrice: album.price
-        });
+      // Re-verificar stock dentro de la transacción para evitar condiciones de carrera
+      for (const it of orderItemsData) {
+        const album = await tx.albums.findUnique({ where: { id: it.albumId } });
+        if (!album) throw new Error(`Album con ID ${it.albumId} no encontrado durante commit.`);
+        if (album.stock < it.quantity) throw new Error(`Stock insuficiente para ${album.name} durante commit. Disponible: ${album.stock}`);
       }
 
-// 3. INTEGRACIÓN DE PAGO (Patrón Strategy Dinámico)
-      
-      // A. Identificamos qué método quiere usar el usuario (ej. "CreditCard", "Bitcoin")
-      // Si no envía nada, asumimos 'CreditCard' por defecto (opcional)
-      const methodToUse = paymentDetails?.method || paymentDetails?.paymentMethod || 'CreditCard';
-
-      if (!methodToUse) {
-        throw new Error("Debe especificar un 'paymentMethod' (ej. CreditCard).");
-      }
-
-      console.log(`Intentando pagar con: ${methodToUse}`);
-
-      // B. Delegamos al Contexto la ejecución
-      // Esto lanzará error si methodToUse es "Bitcoin" porque no existe en el mapa
-      let paymentResult;
-      try {
-        paymentResult = await PaymentProcessor.process(methodToUse, totalAmount, paymentDetails);
-        console.log('Payment result:', paymentResult);
-      } catch (err) {
-        // Log y re-lanzamos para que el controller pueda mapear a 504/400 según corresponda
-        console.error('Payment processing error:', err && err.message, 'isTimeout=', !!(err && err.isTimeout));
-        throw err;
-      }
-
-      // Si por algún motivo la estrategia devolviera un objeto indicando fallo (sin lanzar), lo normalizamos aquí
-      if (!paymentResult || paymentResult.success === false) {
-        const err = new Error(paymentResult && paymentResult.message ? paymentResult.message : 'Pago rechazado');
-        if (paymentResult && paymentResult.isTimeout) err.isTimeout = true;
-        err.payment = paymentResult;
-        throw err;
-      }
-
-      // 4. ACTUALIZACIÓN DE STOCK Y CREACIÓN DE REGISTROS
-      
-      // A. Descontar Stock
+      // Descontar Stock
       for (const it of orderItemsData) {
         await tx.albums.update({
           where: { id: it.albumId },
@@ -82,7 +75,7 @@ class OrderService {
         });
       }
 
-      // B. Crear la Orden
+      // Crear la Orden
       const newOrder = await tx.order.create({
         data: {
           userId: String(userId),
@@ -91,17 +84,13 @@ class OrderService {
         }
       });
 
-      // C. Crear los Detalles (Items)
-      const itemsWithOrderId = orderItemsData.map(item => ({
-        ...item,
-        orderId: newOrder.id
-      }));
-      
+      // Crear los Detalles (Items)
+      const itemsWithOrderId = orderItemsData.map(item => ({ ...item, orderId: newOrder.id }));
       if (itemsWithOrderId.length) {
         await tx.orderItem.createMany({ data: itemsWithOrderId });
       }
 
-      // D. Registrar pago
+      // Registrar pago
       try {
         await tx.payment.create({
           data: {
@@ -115,20 +104,10 @@ class OrderService {
         });
       } catch (e) {
         console.error('Error creando registro de pago en DB:', e && e.message);
-        // no abort: prefer not to block order creation if logging payment fails
       }
 
-      // 5. CONFIRMAR TRANSACCIÓN (COMMIT)
-      // Devolvemos la orden con sus items y pagos
       return await tx.order.findUnique({ where: { id: newOrder.id }, include: { items: true, Payment: true } });
-
-    },
-    {
-      maxWait: 7000, 
-      timeout: 40000 
-    }
-  
-  );
+    }, { maxWait: 7000, timeout: 40000 });
   }
 
   // Obtener historial del usuario
